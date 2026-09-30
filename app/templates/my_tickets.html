@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>Marz - Mis Solicitudes</title></head>
+<body>
+  <h2>Mis Solicitudes</h2>
+  <a href="/tickets/new">Crear Nueva Solicitud</a>
+  <table border="1" style="margin-top:10px;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Estado</th>
+        <th>Última Actualización</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td>#{{ ticket.id }}</td>
+        <td>{{ ticket.title }}</td>
+        <td>{{ ticket.status }}</td>
+        <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td><a href="/tickets/{{ ticket.id }}">Ver detalle</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form action="/logout" method="POST" style="margin-top:20px;">
+    <button type="submit">Cerrar Sesión</button>
+  </form>
+</body>
+</html>

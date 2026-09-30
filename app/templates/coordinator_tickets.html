@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>Marz - Panel Coordinador</title></head>
+<body>
+  <h2>Gestión de Solicitudes (Coordinador)</h2>
+  <div>
+    Ordenar por:
+    <a href="?sort_by=priority&order=desc">Prioridad (Mayor a menor)</a> |
+    <a href="?sort_by=status">Estado</a> |
+    <a href="?sort_by=created_at">Fecha</a>
+  </div>
+  <table border="1" style="margin-top:10px;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Estado</th>
+        <th>Prioridad Actual</th>
+        <th>Cambiar Prioridad</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td>#{{ ticket.id }}</td>
+        <td>{{ ticket.title }}</td>
+        <td>{{ ticket.status }}</td>
+        <td><strong>{{ ticket.priority }}</strong></td>
+        <td>
+          <form action="/tickets/{{ ticket.id }}/prioritize" method="POST">
+            <select name="priority">
+              <option value="Baja" {% if ticket.priority == 'Baja' %}selected{% endif %}>Baja</option>
+              <option value="Media" {% if ticket.priority == 'Media' %}selected{% endif %}>Media</option>
+              <option value="Alta" {% if ticket.priority == 'Alta' %}selected{% endif %}>Alta</option>
+            </select>
+            <button type="submit">Actualizar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form action="/logout" method="POST" style="margin-top:20px;">
+    <button type="submit">Cerrar Sesión</button>
+  </form>
+</body>
+</html>
