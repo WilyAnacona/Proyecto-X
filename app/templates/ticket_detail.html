@@ -1,15 +1,117 @@
 ﻿<!DOCTYPE html>
 <html>
-<head><title>Marz - Detalle de Solicitud</title></head>
+<head>
+  <title>Marz - Detalle de Solicitud #{{ ticket.id }}</title>
+</head>
 <body>
-  <h2>Detalle de Solicitud #{{ ticket.id }}</h2>
-  <p><strong>Título:</strong> {{ ticket.title }}</p>
-  <p><strong>Categoría:</strong> {{ ticket.category }}</p>
-  <p><strong>Descripción:</strong> {{ ticket.description }}</p>
-  <p><strong>Estado:</strong> {{ ticket.status }}</p>
-  <p><strong>Prioridad:</strong> {{ ticket.priority }}</p>
-  <p><strong>Creado:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-  <p><strong>Última Actualización:</strong> {{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
-  <a href="/dashboard">Volver al panel</a>
+  <h2>Solicitud #{{ ticket.id }} - {{ ticket.title }}</h2>
+
+  <!-- Mensajes Flash de estado o errores -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul>
+        {% for category, message in messages %}
+          <li style="color: {% if category == 'error' %}red{% elif category == 'warning' %}orange{% else %}green{% endif %};">
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
+    <p><strong>Categoría:</strong> {{ ticket.category }}</p>
+    <p><strong>Descripción:</strong> {{ ticket.description }}</p>
+    <!-- Muestra el valor del Enum sin el prefijo 'StatusEnum.' -->
+    <p><strong>Estado Actual:</strong> <strong>{{ ticket.status.value }}</strong></p>
+    <!-- Muestra la prioridad limpia sin 'PriorityEnum.' -->
+    <p><strong>Prioridad:</strong> {{ ticket.priority.value }}</p>
+    <p><strong>Creado:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    <p><strong>Última Actualización:</strong> {{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+  </div>
+
+  <!-- HU07: Transición de Estado (Agente) -->
+  {% if session['user_role'] == 'Agente' %}
+    <div style="background-color: #f9f9f9; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd;">
+      <h3>Gestión de Estado (Agente)</h3>
+      {% set allowed_statuses = ticket.ALLOWED_TRANSITIONS.get(ticket.status, []) %}
+      {% if allowed_statuses %}
+        <form action="/tickets/{{ ticket.id }}/status" method="POST">
+          <label>Cambiar estado a:</label>
+          <select name="status" required>
+            {% for st in allowed_statuses %}
+              <!-- Se agrega .value para enviar 'En Proceso' en lugar de 'StatusEnum.EN_PROCESO' -->
+              <option value="{{ st.value }}">{{ st.value }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Actualizar Estado</button>
+        </form>
+      {% else %}
+        <p><em>Esta solicitud está en estado terminal ({{ ticket.status.value }}) y no permite más cambios de estado.</em></p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- HU08: Confirmar o Reabrir (Solicitante) -->
+  {% if session['user_role'] == 'Solicitante' and ticket.status.value == 'Resuelto' %}
+    <div style="background-color: #e8f5e9; padding: 10px; margin-bottom: 20px; border: 1px solid #c8e6c9;">
+      <h3>Acción sobre la Solución</h3>
+      
+      <form action="/tickets/{{ ticket.id }}/resolve-action" method="POST" style="margin-bottom: 15px;">
+        <input type="hidden" name="action" value="confirm">
+        <button type="submit" style="background-color: #4caf50; color: white; padding: 8px 12px; border: none; cursor: pointer;">
+          Aceptar Solución y Cerrar Ticket
+        </button>
+      </form>
+
+      <form action="/tickets/{{ ticket.id }}/resolve-action" method="POST">
+        <input type="hidden" name="action" value="reopen">
+        <label><strong>Motivo de Reapertura:</strong></label><br>
+        <textarea name="reason" placeholder="Describa por qué la solución no es satisfactoria..." required style="width: 300px; height: 60px;"></textarea><br>
+        <button type="submit" style="background-color: #f44336; color: white; padding: 8px 12px; border: none; cursor: pointer; margin-top: 5px;">
+          Reabrir Solicitud
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
+  <!-- HU06: Comentarios de Trabajo (Inmutables) -->
+  <div style="margin-top: 20px;">
+    <h3>Comentarios de Trabajo</h3>
+    <ul>
+      {% for comment in ticket.comments %}
+        <li style="margin-bottom: 10px;">
+          <strong>{{ comment.author_name }}</strong> <small>({{ comment.created_at.strftime('%Y-%m-%d %H:%M') }})</small>:<br>
+          {{ comment.text }}
+        </li>
+      {% else %}
+        <li><em>No hay comentarios registrados en esta solicitud.</em></li>
+      {% endfor %}
+    </ul>
+
+    <form action="/tickets/{{ ticket.id }}/comments" method="POST" style="margin-top: 15px;">
+      <textarea name="text" placeholder="Escriba un comentario de avance..." required style="width: 350px; height: 70px;"></textarea><br>
+      <button type="submit" style="margin-top: 5px;">Agregar Comentario</button>
+    </form>
+  </div>
+
+  <!-- Historial de Cambios de Estado (Trazabilidad) -->
+  {% if ticket.status_history %}
+    <div style="margin-top: 20px;">
+      <h3>Historial de Cambios de Estado</h3>
+      <ul>
+        {% for h in ticket.status_history %}
+          <li>
+            De <strong>{{ h.old_status }}</strong> a <strong>{{ h.new_status }}</strong>
+            <small>({{ h.timestamp.strftime('%Y-%m-%d %H:%M') }})</small>
+            {% if h.reason %}- Motivo: {{ h.reason }}{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <br>
+  <a href="/dashboard">Volver al Panel Principal</a>
 </body>
 </html>

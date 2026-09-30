@@ -1,9 +1,24 @@
 ﻿<!DOCTYPE html>
 <html>
-<head><title>Marz - Mis Solicitudes</title></head>
+<head>
+  <title>Marz - Mis Solicitudes</title>
+</head>
 <body>
   <h2>Mis Solicitudes</h2>
-  <a href="/tickets/new">Crear Nueva Solicitud</a>
+  
+  <div style="margin-bottom: 15px;">
+    <a href="/tickets/new">Crear Nueva Solicitud</a>
+  </div>
+
+  <!-- Formulario de búsqueda por título o descripción (HU08) -->
+  <form method="GET" action="/my-tickets" style="margin-bottom: 15px;">
+    <input type="text" name="q" value="{{ search_query or '' }}" placeholder="Buscar por título o descripción..." style="width: 250px;">
+    <button type="submit">Buscar</button>
+    {% if search_query %}
+      <a href="/my-tickets" style="margin-left: 5px;">Limpiar</a>
+    {% endif %}
+  </form>
+
   <table border="1" style="margin-top:10px;">
     <thead>
       <tr>
@@ -23,9 +38,14 @@
         <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
         <td><a href="/tickets/{{ ticket.id }}">Ver detalle</a></td>
       </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" style="text-align: center;">No se encontraron solicitudes.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
+
   <form action="/logout" method="POST" style="margin-top:20px;">
     <button type="submit">Cerrar Sesión</button>
   </form>

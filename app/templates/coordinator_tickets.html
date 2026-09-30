@@ -1,14 +1,18 @@
 ﻿<!DOCTYPE html>
 <html>
-<head><title>Marz - Panel Coordinador</title></head>
+<head>
+  <title>Marz - Panel Coordinador</title>
+</head>
 <body>
   <h2>Gestión de Solicitudes (Coordinador)</h2>
-  <div>
+
+  <div style="margin-bottom: 15px;">
     Ordenar por:
     <a href="?sort_by=priority&order=desc">Prioridad (Mayor a menor)</a> |
     <a href="?sort_by=status">Estado</a> |
     <a href="?sort_by=created_at">Fecha</a>
   </div>
+
   <table border="1" style="margin-top:10px;">
     <thead>
       <tr>
@@ -17,6 +21,8 @@
         <th>Estado</th>
         <th>Prioridad Actual</th>
         <th>Cambiar Prioridad</th>
+        <th>Asignar Agente</th>
+        <th>Acción</th>
       </tr>
     </thead>
     <tbody>
@@ -36,10 +42,29 @@
             <button type="submit">Actualizar</button>
           </form>
         </td>
+        <td>
+          <form action="/tickets/{{ ticket.id }}/assign" method="POST">
+            <select name="agent_id" required>
+              <option value="">-- Asignar Agente --</option>
+              {% for agent in active_agents %}
+                <option value="{{ agent.id }}" {% if ticket.assigned_agent_id == agent.id %}selected{% endif %}>
+                  {{ agent.username }}
+                </option>
+              {% endfor %}
+            </select>
+            <button type="submit">Asignar</button>
+          </form>
+        </td>
+        <td><a href="/tickets/{{ ticket.id }}">Ver detalle</a></td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center;">No hay solicitudes registradas.</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
   <form action="/logout" method="POST" style="margin-top:20px;">
     <button type="submit">Cerrar Sesión</button>
   </form>

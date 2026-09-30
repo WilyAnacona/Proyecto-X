@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Marz - Panel de Agente</title>
+</head>
+<body>
+  <h2>Panel de Agente ({{ session['username'] }})</h2>
+
+  <!-- HU05: Notificaciones internas al ser asignado -->
+  {% if notifications %}
+    <div style="background-color: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+      <h3>Notificaciones de Asignación</h3>
+      <ul>
+        {% for note in notifications %}
+          <li>{{ note.message }} <small>({{ note.created_at.strftime('%Y-%m-%d %H:%M') }})</small></li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <h3>Mis Solicitudes Asignadas</h3>
+  <table border="1" style="margin-top:10px;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Estado</th>
+        <th>Prioridad</th>
+        <th>Última Actualización</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td>#{{ ticket.id }}</td>
+        <td>{{ ticket.title }}</td>
+        <td>{{ ticket.status }}</td>
+        <td><strong>{{ ticket.priority }}</strong></td>
+        <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td><a href="/tickets/{{ ticket.id }}">Atender / Ver detalle</a></td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center;">No tienes solicitudes asignadas actualmente.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <form action="/logout" method="POST" style="margin-top:20px;">
+    <button type="submit">Cerrar Sesión</button>
+  </form>
+</body>
+</html>
